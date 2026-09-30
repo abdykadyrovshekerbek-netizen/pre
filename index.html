@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Летописная Викторина: Повесть о Петре и Февронии</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js для аутентичных звуковых эффектов (гусли/колокола) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Google Fonts для древнерусского/рукописного стиля -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Ruslan+Display&family=Pangolin&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-parchment: #f4e8c1;
+            --bg-parchment-dark: #e5d3a1;
+            --cinnabar: #a62424; /* Киноварь (старинная красная краска) */
+            --gold: #c69214;
+            --dark-oak: #2a1a08;
+            --ink: #1c120c;
+            --border-gold: #d4af37;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background-color: #120b07;
+            background-image: 
+                radial-gradient(circle at center, rgba(42, 26, 8, 0.85) 0%, rgba(10, 6, 4, 0.98) 100%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232a1a08' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .old-title {
+            font-family: 'Ruslan Display', cursive;
+            letter-spacing: 1px;
+        }
+
+        /* Эффект пергаментного свитка */
+        .parchment-card {
+            background: linear-gradient(135deg, #f8f0d5 0%, #e8d5a3 100%);
+            box-shadow: 
+                0 0 25px rgba(0,0,0,0.8),
+                inset 0 0 40px rgba(139, 69, 19, 0.35);
+            border: 8px solid #3d240e;
+            border-image: linear-gradient(to bottom right, #5a3818, #2a1a08, #8c5d2b) 1;
+            position: relative;
+        }
+
+        /* Древнерусская узорная рамка */
+        .parchment-card::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 2px solid var(--cinnabar);
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        .drop-cap {
+            font-family: 'Ruslan Display', cursive;
+            float: left;
+            font-size: 3.5rem;
+            line-height: 2.8rem;
+            padding-top: 4px;
+            padding-right: 8px;
+            color: var(--cinnabar);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Кнопки в стиле старославянских грамот */
+        .btn-slavic {
+            background: linear-gradient(180deg, #3a220f 0%, #1f1107 100%);
+            color: #ebd3a2;
+            border: 2px solid var(--gold);
+            font-family: 'Ruslan Display', cursive;
+            letter-spacing: 1px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-slavic:hover:not(:disabled) {
+            background: linear-gradient(180deg, #573315 0%, #3a220f 100%);
+            color: #ffffff;
+            border-color: #ffe699;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-slavic:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-slavic.active-level {
+            background: linear-gradient(180deg, var(--cinnabar) 0%, #5e1111 100%);
+            border-color: #ffd700;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(166, 36, 36, 0.6);
+        }
+
+        .option-card {
+            background: rgba(244, 232, 193, 0.85);
+            border: 2px solid #8c6d46;
+            transition: all 0.2s ease;
+        }
+
+        .option-card:hover {
+            background: #fff8e3;
+            border-color: var(--cinnabar);
+            transform: translateX(4px);
+        }
+
+        .option-card.correct {
+            background: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+            font-weight: bold;
+        }
+
+        .option-card.incorrect {
+            background: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+        }
+
+        /* Орнаментальные разделители */
+        .slavic-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--cinnabar);
+            margin: 1rem 0;
+            font-size: 1.2rem;
+        }
+        .slavic-divider::before, .slavic-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 2px dashed #8c6d46;
+            margin: 0 10px;
+        }
+
+        /* Таймер пламени */
+        .timer-bar {
+            height: 10px;
+            background: linear-gradient(90deg, #d9534f, #f0ad4e, #5cb85c);
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-2 sm:p-4 md:p-6">
+
+    <header class="text-center my-3">
+        <div class="inline-block relative">
+            <h1 class="old-title text-2xl sm:text-4xl md:text-5xl text-amber-200 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] tracking-wider">
+                ⚜ ПОВЕСТЬ О ПЕТРЕ И ФЕВРОНИИ ⚜
+            </h1>
+            <p class="text-amber-400/90 italic text-base sm:text-lg mt-1 font-semibold">
+                — Древнерусская летописная викторина —
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto my-auto relative z-10">
+        
+        <!-- ================= ЭКРАН 1: ВЫБОР УРОВНЯ И СТАРТ ================= -->
+        <div id="screen-welcome" class="parchment-card p-6 sm:p-8 rounded-lg text-center">
+            <div class="text-2xl sm:text-3xl font-bold mb-4 text-amber-950 old-title border-b-2 border-amber-800/40 pb-2">
+                Миръ дому твоему, любознательный читатель!
+            </div>
+            
+            <p class="text-lg sm:text-xl text-stone-900 leading-relaxed mb-6">
+                <span class="drop-cap">В</span>ь лето 1547-е инок Ермолай-Еразм записал древнее муромское предание о любви, мудрости и верности. Проверь знания свои по сей великой повести Древней Руси! Выбери уровень испытания:
+            </p>
+
+            <!-- Выбор сложности -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <button onclick="selectLevel('easy')" id="btn-easy" class="btn-slavic active-level p-4 rounded text-lg flex flex-col items-center justify-center">
+                    <span class="text-xl">📜 Легкій</span>
+                    <span class="text-xs font-serif mt-1 text-amber-200">10 вопросов • Основы сказания</span>
+                </button>
+                <button onclick="selectLevel('medium')" id="btn-medium" class="btn-slavic p-4 rounded text-lg flex flex-col items-center justify-center">
+                    <span class="text-xl">⚔ Средній</span>
+                    <span class="text-xs font-serif mt-1 text-amber-200">10 вопросов • Загадки и детали</span>
+                </button>
+                <button onclick="selectLevel('hard')" id="btn-hard" class="btn-slavic p-4 rounded text-lg flex flex-col items-center justify-center">
+                    <span class="text-xl">👑 Сложный</span>
+                    <span class="text-xs font-serif mt-1 text-amber-200">10 вопросов • Текст оригинала</span>
+                </button>
+            </div>
+
+            <div id="level-description" class="bg-amber-900/10 p-4 rounded border border-amber-800/30 mb-6 text-left text-stone-800 text-sm sm:text-base">
+                <strong>📜 Легкий уровень:</strong> Для тех, кто помнит главный сюжет: борьба со змеем, исцеление Петра, изгнание из Мурома и чудеса после кончины.
+            </div>
+
+            <!-- Кнопки управления звуком и старт -->
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button onclick="toggleAudio()" id="btn-audio" class="px-4 py-2 bg-amber-900/20 border border-amber-800 rounded text-amber-950 text-sm hover:bg-amber-800/30">
+                    🔊 Звук: Включен
+                </button>
+                <button onclick="startQuiz()" class="btn-slavic px-8 py-3 text-xl sm:text-2xl rounded-lg shadow-lg">
+                    Почать Испытаніе! ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 2: ПРОХОЖДЕНИЕ ВИКТОРИНЫ ================= -->
+        <div id="screen-quiz" class="parchment-card p-5 sm:p-8 rounded-lg hidden">
+            <!-- Верхняя панель статуса -->
+            <div class="flex justify-between items-center mb-3 text-sm sm:text-base border-b border-amber-900/30 pb-2 font-bold text-amber-950">
+                <div id="quiz-progress-text">Вопросъ 1 из 10</div>
+                <div id="quiz-level-indicator" class="text-red-800 uppercase tracking-widest font-serif">Уровень: Легкий</div>
+                <div>Счетъ: <span id="quiz-score" class="text-red-900 text-lg">0</span></div>
+            </div>
+
+            <!-- Индикатор времени -->
+            <div class="w-full bg-amber-900/20 rounded-full overflow-hidden mb-5 border border-amber-800/40">
+                <div id="timer-bar" class="timer-bar w-full"></div>
+            </div>
+
+            <!-- Текст вопроса -->
+            <div class="mb-6">
+                <h2 id="question-text" class="text-xl sm:text-2xl font-bold text-stone-900 leading-snug">
+                    Загрузка вопроса...
+                </h2>
+            </div>
+
+            <!-- Варианты ответов -->
+            <div id="options-container" class="grid grid-cols-1 gap-3 mb-6">
+                <!-- Кнопки вариантов будут вставлены через JS -->
+            </div>
+
+            <!-- Блок разъяснения / Летописной справки после ответа -->
+            <div id="explanation-box" class="hidden bg-amber-900/10 border-l-4 border-red-800 p-4 rounded text-stone-900 mb-6 animate-fadeIn">
+                <div class="font-bold text-red-900 mb-1 font-serif flex items-center gap-2">
+                    <span>📖 Летописное пояснение:</span>
+                </div>
+                <div id="explanation-text" class="text-sm sm:text-base italic leading-relaxed">
+                    ...
+                </div>
+            </div>
+
+            <!-- Нижняя кнопка перехода -->
+            <div class="flex justify-between items-center">
+                <button onclick="exitToMenu()" class="text-xs sm:text-sm text-stone-700 underline hover:text-red-900">
+                    ← Вернуться в меню
+                </button>
+                <button id="btn-next" onclick="nextQuestion()" disabled class="btn-slavic px-6 py-2 text-base sm:text-lg rounded opacity-50 cursor-not-allowed">
+                    Следующій вопросъ ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= ЭКРАН 3: РЕЗУЛЬТАТЫ И ЛЕТОПИСЬ ================= -->
+        <div id="screen-result" class="parchment-card p-6 sm:p-8 rounded-lg text-center hidden">
+            <div class="text-2xl sm:text-4xl font-bold mb-2 text-amber-950 old-title">
+                Грамота Завершенія
+            </div>
+            
+            <div class="slavic-divider">❖ ❖ ❖</div>
+
+            <div id="result-title" class="text-xl sm:text-2xl font-bold text-red-900 mb-2">
+                Титул: Мудрый Муромский Летописец
+            </div>
+
+            <p id="result-subtitle" class="text-stone-800 text-base sm:text-lg mb-6 italic">
+                Вы показали глубокое ведение повести святых Петра и Февронии!
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8 max-w-lg mx-auto text-stone-900">
+                <div class="bg-amber-900/10 p-3 rounded border border-amber-800/30">
+                    <div class="text-xs text-amber-900 uppercase">Верных ответов</div>
+                    <div id="stat-correct" class="text-2xl font-bold text-emerald-800">0/10</div>
+                </div>
+                <div class="bg-amber-900/10 p-3 rounded border border-amber-800/30">
+                    <div class="text-xs text-amber-900 uppercase">Точность</div>
+                    <div id="stat-accuracy" class="text-2xl font-bold text-amber-900">0%</div>
+                </div>
+                <div class="bg-amber-900/10 p-3 rounded border border-amber-800/30 col-span-2 sm:col-span-1">
+                    <div class="text-xs text-amber-900 uppercase">Набрано очков</div>
+                    <div id="stat-score" class="text-2xl font-bold text-red-900">0</div>
+                </div>
+            </div>
+
+            <!-- Итоговая старославянская цитата -->
+            <div class="p-4 bg-amber-950/5 border border-amber-900/20 rounded text-sm sm:text-base italic text-stone-800 mb-8 max-w-xl mx-auto">
+                «Радуйся, Петре, яко от Бога дана ти бысть сила убити летающего змея! Радуйся, Февроние, яко в женстей главе твоей мудрость святых мужей бяше!»
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="restartCurrentLevel()" class="btn-slavic px-6 py-3 rounded text-lg">
+                    🔄 Пройти снова
+                </button>
+                <button onclick="exitToMenu()" class="btn-slavic px-6 py-3 rounded text-lg">
+                    📜 Сменить уровень
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center my-4 text-xs sm:text-sm text-amber-200/60 font-serif">
+        Летописный источник: «Повесть о Петре и Февронии Муромских» (Ермолай-Еразм, XVI век)
+    </footer>
+
+    <script>
+        /* База данных вопросов по уровням сложности */
+        const quizDatabase = {
+            easy: [
+                {
+                    q: "В каком городе правил благоверный князь Павел, а затем его брат Пётр?",
+                    options: ["В Муроме", "В Рязани", "В Новгороде", "В Москве"],
+                    correct: 0,
+                    exp: "«Есть в Русской земле город, называемый Муромом. Правил в нем когда-то благоверный князь по имени Павел...»"
+                },
+                {
+                    q: "Какое крылатое чудовище летал в Муром к жене князя Павла?",
+                    options: ["Огненный змей", "Двуглавый орел", "Змей Горыныч", "Соловей-Разбойник"],
+                    correct: 0,
+                    exp: "«Дьявол сделавши так, что злой крылатый змей стал летать к жене того князя на блуд...»"
+                },
+                {
+                    q: "Из какой земли и какой деревни была мудрая дева Феврония?",
+                    options: ["Рязанская земля, деревня Ласково", "Суздальская земля, село Боголюбово", "Муромская земля, село Карачарово", "Владимирская земля, село Вятское"],
+                    correct: 0,
+                    exp: "Феврония была дочерью древолаза-бортника из села Ласково Рязанской земли."
+                },
+                {
+                    q: "Какова была профессия отца и брата Февронии?",
+                    options: ["Древолазы (бортники, собиравшие мед)", "Кузнецы", "Рыбаки", "Плотники"],
+                    correct: 0,
+                    exp: "«Отец мой и брат – древолазы, в лесу по деревьям мед собирают...»"
+                },
+                {
+                    q: "Какое условие поставила Феврония для исцеления князя Петра?",
+                    options: ["Что князь возьмет её в жёны", "Дать ей три ларя золота", "Построить храм в её деревне", "Освободить крестьян от податей"],
+                    correct: 0,
+                    exp: "Феврония ответила: «Если не стану супругой ему, то не подобает мне и лечить его»."
+                },
+                {
+                    q: "Почему Пётр заболел снова после первого исцеления?",
+                    options: ["Он пренебрег девицей из-за её происхождения и не сдержал слова жениться", "Его укусил ядовитый паук", "Змей снова напал на него", "Он выпил отравленное вино"],
+                    correct: 0,
+                    exp: "Пётр не захотел взять крестьянку в жёны, но по её наказу оставил непомазанным один струп, от которого язвы снова разошлись."
+                },
+                {
+                    q: "Почему бояре Мурома требовали изгнания Февронии?",
+                    options: ["Их жены не хотели, чтобы крестьянка господствовала над ними", "Она обвинялась в колдовстве", "Она потратила всю казну", "Она была из чужого княжества"],
+                    correct: 0,
+                    exp: "Бояре прили к Петру со словами: «не хотим, чтобы княгиня Феврония повелевала женами нашими»."
+                },
+                {
+                    q: "Что попросила забрать с собой Феврония, когда бояре разрешили ей взять любое богатство?",
+                    options: ["Своего супруга, князя Петра", "Всю княжескую казну", "Святые иконы", "Драгоценные одежды"],
+                    correct: 0,
+                    exp: "Феврония сказала боярам: «Ничего иного не прошу, только супруга моего, князя Петра!»"
+                },
+                {
+                    q: "Какие иноческие (монашеские) имена приняли Пётр и Феврония перед кончиной?",
+                    options: ["Давид и Евфросиния", "Сергий и Феврония", "Александр и Анна", "Павел и Елизавета"],
+                    correct: 0,
+                    exp: "«И назван был в иноческом чину блаженный князь Петр Давидом, а преподобная Феврония — Ефросинией»."
+                },
+                {
+                    q: "Какое чудо произошло с телами святых после их смерти?",
+                    options: ["Несмотря на раздельное погребение, их тела наутро оказались вместе в общем каменном гробу", "Их тела вознеслись на небо", "Их гроб превратился в золото", "В храме забили целебные источники"],
+                    correct: 0,
+                    exp: "Люди разводили их тела по разным обителям, но дважды чудесным образом они оказывались вместе в едином каменном гробе."
+                }
+            ],
+            medium: [
+                {
+                    q: "Как княгиня выведала секрет смерти летучего змея?",
+                    options: ["Применила льстивые речи и спросила про его кончину", "Опоила его сонным зельем", "Узнала у знахарки", "Подслушала разговор змея со слугой"],
+                    correct: 0,
+                    exp: "Княгиня по совету мужа восхвалила змея и спросила, ведает ли он от чего ему смерть приключится."
+                },
+                {
+                    q: "Как назывался волшебный меч, которым Пётр убил змея, и где он его нашёл?",
+                    options: ["Агриков меч, в алтарной стене монастырской церкви Воздвижения", "Кладенец, на дне реки Оки", "Булатный меч, в кузнице Мурома", "Меч-саморуб, в подземелье замка"],
+                    correct: 0,
+                    exp: "Отрок показал Петру Агриков меч в щели алтарной стены церкви Воздвижения честного Креста."
+                },
+                {
+                    q: "Как Пётр понял, что перед ним в покоях снохи сидит именно змей, а не его родной брат Павел?",
+                    options: ["Он только что вышел от брата из других покоев и встретил слугу, подтвердившего, что Павел не выходил", "У змея были красные глаза", "Змей не знал княжеского пароля", "Змей был без меча"],
+                    correct: 0,
+                    exp: "Пётр только что видел брата в его комнатах и удивился, как тот опередил его, не выходя из своих палат."
+                },
+                {
+                    q: "Что означала загадка Февронии: «Отец и мать пошли взаймы плакать, а брат сквозь ноги смерти в глаза смотреть»?",
+                    options: ["Родители пошли на похороны (их тоже потом будут оплакивать), а брат-бортник полез на дерево", "Родители просили долг, а брат воевал", "Родители плакали у колодца, а брат лечил больного", "Это была бессмысленная загадка"],
+                    correct: 0,
+                    exp: "«Отец и мать пошли на похороны — это плач взаймы... Брат полез на дерево за медом и смотрит сквозь ноги вниз, чтобы не упасть и не умереть»."
+                },
+                {
+                    q: "Каким средством Феврония повелела Петру помазать язвы в бане?",
+                    options: ["Хлебной закваской из дежи", "Древесной смолой", "Освещенным елеем", "Пчелиным медом с травами"],
+                    correct: 0,
+                    exp: "Феврония зачерпнула из дежи хлебной закваски, дунула на нее и велела помазать тело в бане."
+                },
+                {
+                    q: "Какое чудо произошло с хлебными крошками, когда боярин обвинил Февронию в неопрятности?",
+                    options: ["Крошки в её руке превратились в благоухающий ладан и фимиам", "Крошки превратились в золотые монеты", "Крошки обратились в драгоценные камни", "Крошки исчезли без следа"],
+                    correct: 0,
+                    exp: "«Князь Петр взял Февронию за руку и, разжав ее, увидел ладан благоухающий и фимиам»."
+                },
+                {
+                    q: "Как Феврония обличила помыслы человека, плывшего с ней на одном судне во время изгнания?",
+                    options: ["Велела зачерпнуть и испить воды с разных бортов судна — вода оказалась одинаковой, как и женское естество", "Превратила воду вокруг него в лед", "Прочитала его мысли вслух перед его женой", "Наказала его временной глухотой"],
+                    correct: 0,
+                    exp: "Феврония показала, что вода с обеих сторон судна одинакова сладка, так и естество женское одинаково — нечего помышлять о чужой жене."
+                },
+                {
+                    q: "Какое чудо произошло с вбитыми в землю обрубками деревьев на ночлеге?",
+                    options: ["Благословением Февронии они за ночь превратились в большие деревья с ветвями и листвой", "Из них забил родник", "Они стали излучать свет", "Они превратились в каменные столпы"],
+                    correct: 0,
+                    exp: "«Феврония благословила их, сказав: Да будут они утром большими деревьями... Так и было»."
+                },
+                {
+                    q: "Почему бояре умоляли Петра и Февронию вернуться в Муром?",
+                    options: ["В Муроме началась кровавая смута и борьба вельмож за власть", "Город окружили враги", "На город напал новый змей", "Засохли все урожаи"],
+                    correct: 0,
+                    exp: "«Много вельмож погибло в городе от меча. Каждый из них хотел властвовать, и в распре друг друга перебили»."
+                },
+                {
+                    q: "Чем занималась Феврония (Евфросиния) в момент, когда Пётр прислал сказать, что умирает?",
+                    options: ["Вышивала лики святых на воздухе (покрове) для соборного храма", "Молилась у иконы", "Писала летопись", "Пекла хлеб для бедных"],
+                    correct: 0,
+                    exp: "Феврония вышивала воздух для храма Богородицы. Она воткнула иглу, закрутила нитку и преставилась вместе с мужем."
+                }
+            ],
+            hard: [
+                {
+                    q: "Какую испытательную задачу отправил Пётр Февронии через слугу, пока мылся в бане?",
+                    options: ["Сделать из пучка льна сорочку, одежду и платок за время его мытья", "Сткать ковер из конского волоса", "Сварить зелье из сухих кореньев", "Выковать перстень из кусочка железа"],
+                    correct: 0,
+                    exp: "Пётр прислал пучок льна. На это Феврония прислала ему обрубок поленца, попросив сделать из него ткацкий стан за то же время."
+                },
+                {
+                    q: "Что Феврония назвала «ушами» и «очами» дома, когда к ней впервые вошел княжеский отрок?",
+                    options: ["Собаку (уши) и ребенка (очи)", "Окна и двери", "Кошку и сову", "Зеркало и ставни"],
+                    correct: 0,
+                    exp: "«Если бы был в нашем доме пес (уши) — залаял бы. А если бы был ребенок (очи) — сказал бы мне, что ты идешь»."
+                },
+                {
+                    q: "Какую Евангельскую заповедь цитировал князь Пётр, отказываясь прогнать Февронию ради власти?",
+                    options: ["Заповедь Матфея: прогнавший жену не в прелюбодеянии сам прелюбодействует", "Заповедь о подставлении другой щеки", "Заповедь о богаче и игольном ушке", "Заповедь о добром самарянине"],
+                    correct: 0,
+                    exp: "Пётр поступил по Евангелию от Матфея и «пренебрег княжением своим, чтобы заповеди Божьей не нарушить»."
+                },
+                {
+                    q: "На какой реке разворачивались события изгнания Петра и Февронии на судах?",
+                    options: ["На реке Оке", "На реке Волге", "На реке Клязьме", "На реке Днепр"],
+                    correct: 0,
+                    exp: "«Злочестивые бояре приготовили для них суда на реке – под этим городом протекает река, называемая Окой»."
+                },
+                {
+                    q: "В какой именно день месяца преставились святые Пётр и Феврония?",
+                    options: ["25 июня", "1 августа", "15 мая", "8 октября"],
+                    correct: 0,
+                    exp: "«...и отдалі они оба святые свои души в руки Божіи в двадцать пятый день месяца июня» (8 июля по новому стилю)."
+                },
+                {
+                    q: "Где именно изначально положили тело Петра после его смерти?",
+                    options: ["В городской соборной церкви святой Богородицы", "В загородном женском монастыре Креста", "В Муромском кремле", "В пещере у реки"],
+                    correct: 0,
+                    exp: "Тело Петра положили в городской церкви Богородицы, а Февронию — в загородном монастыре Воздвижения Честного Креста."
+                },
+                {
+                    q: "Кто является автором «Повести о Петре и Февронии Муромских»?",
+                    options: ["Инок Ермолай-Еразм", "Монах Нестор Летописец", "Митрополит Иларион", "Аввакум Петров"],
+                    correct: 0,
+                    exp: "Повесть была написана в XVI веке писателем и иноком Ермолаем-Еразмом по поручению митрополита Макария."
+                },
+                {
+                    q: "Какая фольклорная сказочная деталь переплетена в повести с христианским житием?",
+                    options: ["Мотив о змееборчестве и загадках мудрой девы", "Мотив о сапогах-самоходах", "Мотив о Василисе Прекрасной", "Мотив о Жар-птице"],
+                    correct: 0,
+                    exp: "В основе памятника лежат фольклорные сюжеты о победе над змеем и о мудрой крестьянской деве, ставшей княгиней."
+                },
+                {
+                    q: "Каким образом Пётр и Феврония завещали сделать свой гроб еще при жизни?",
+                    options: ["Высечь из одного камня два гроба с тонкой перегородкой между ними", "Сколотить из векового дуба", "Отлить из бронзы", "Высечь из белого мрамора с позолотой"],
+                    correct: 0,
+                    exp: "«И завещали, чтобы их обоих положили в одну гробницу, и велели сделать из одного камня два гроба, имеющих меж собою тонкую перегородку»."
+                },
+                {
+                    q: "Какая главная мысль похвального слова инока Ермолая завершает повесть?",
+                    options: ["Прославление кроткого правления, верности Божьим заповедям и нетленных венцов на небесах", "Прославление воинской силы Мурома", "Осуждение всех бояр Руси", "Призыв к уходу всех князей в монастыри"],
+                    correct: 0,
+                    exp: "Повесть завершается похвалой кротости, милосердию, соблюдению заповедей и вечному духовному союзу супругов."
+                }
+            ]
+        };
+
+        let currentLevel = 'easy';
+        let currentQuestions = [];
+        let currentQIndex = 0;
+        let score = 0;
+        let correctAnswersCount = 0;
+        let timerInterval = null;
+        let timeLeft = 30; // 30 секунд на вопрос
+        let soundEnabled = true;
+        let answered = false;
+
+        /* Инициализация синтезатора звука Tone.js */
+        let synth = null;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -12;
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                if (type === 'correct') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+                } else if (type === 'incorrect') {
+                    synth.triggerAttackRelease(["A3", "Eb3"], "4n");
+                } else if (type === 'click') {
+                    synth.triggerAttackRelease("G4", "16n");
+                } else if (type === 'win') {
+                    synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "2n");
+                }
+            } catch(e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('btn-audio').innerText = soundEnabled ? "🔊 Звук: Включен" : "🔇 Звук: Выключен";
+        }
+
+        /* Выбор уровня сложности */
+        function selectLevel(level) {
+            playSound('click');
+            currentLevel = level;
+            
+            document.getElementById('btn-easy').classList.remove('active-level');
+            document.getElementById('btn-medium').classList.remove('active-level');
+            document.getElementById('btn-hard').classList.remove('active-level');
+            
+            document.getElementById(`btn-${level}`).classList.add('active-level');
+
+            const descBox = document.getElementById('level-description');
+            if (level === 'easy') {
+                descBox.innerHTML = '<strong>📜 Легкий уровень:</strong> Для тех, кто помнит главный сюжет: борьба со змеем, исцеление Петра, изгнание из Мурома и чудеса после кончины.';
+            } else if (level === 'medium') {
+                descBox.innerHTML = '<strong>⚔ Средний уровень:</strong> Подробности повествования: Агриков меч, загадки Февронии, притча о речной воде и чудные обрубки деревьев.';
+            } else {
+                descBox.innerHTML = '<strong>👑 Сложный уровень:</strong> Для знатоков древнерусской литературы: прямые цитаты, церковнославянские детали, иноческие имена и богословские мотивы.';
+            }
+        }
+
+        /* Запуск викторины */
+        function startQuiz() {
+            playSound('click');
+            // Перемешивание вопросов
+            currentQuestions = [...quizDatabase[currentLevel]].sort(() => Math.random() - 0.5);
+            currentQIndex = 0;
+            score = 0;
+            correctAnswersCount = 0;
+
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+
+            const levelNames = { easy: "📜 Легкій", medium: "⚔ Средній", hard: "👑 Сложный" };
+            document.getElementById('quiz-level-indicator').innerText = `Уровень: ${levelNames[currentLevel]}`;
+
+            loadQuestion();
+        }
+
+        /* Загрузка текущего вопроса */
+        function loadQuestion() {
+            answered = false;
+            clearInterval(timerInterval);
+            
+            const qData = currentQuestions[currentQIndex];
+
+            // Обновление интерфейса
+            document.getElementById('quiz-progress-text').innerText = `Вопросъ ${currentQIndex + 1} из ${currentQuestions.length}`;
+            document.getElementById('quiz-score').innerText = score;
+            document.getElementById('question-text').innerText = qData.q;
+
+            // Скрытие блока пояснения
+            document.getElementById('explanation-box').classList.add('hidden');
+            
+            // Кнопка Далее заблокирована
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.disabled = true;
+            nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Генерация вариантов
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // Создаем массив объектов с оригинальными индексами для правильной проверки после перемешивания
+            let optionsWithIndex = qData.options.map((opt, idx) => ({ text: opt, originalIndex: idx }));
+            optionsWithIndex.sort(() => Math.random() - 0.5);
+
+            optionsWithIndex.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-card p-4 rounded-lg text-left text-base sm:text-lg font-serif cursor-pointer shadow-sm flex items-center justify-between';
+                btn.innerHTML = `<span>${item.text}</span> <span class="text-xs opacity-40">❖</span>`;
+                btn.onclick = () => handleAnswer(item.originalIndex, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Запуск таймера (30 секунд)
+            timeLeft = 30;
+            updateTimerBar();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerBar();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerBar() {
+            const bar = document.getElementById('timer-bar');
+            const percentage = (timeLeft / 30) * 100;
+            bar.style.width = `${percentage}%`;
+        }
+
+        /* Обработка выбора ответа */
+        function handleAnswer(selectedIndex, clickedBtn) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+
+            const qData = currentQuestions[currentQIndex];
+            const isCorrect = (selectedIndex === qData.correct);
+
+            const allButtons = document.querySelectorAll('#options-container button');
+            allButtons.forEach(btn => btn.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                playSound('correct');
+                clickedBtn.classList.add('correct');
+                // Начисление очков с учетом времени
+                const bonus = timeLeft * 5;
+                score += 100 + bonus;
+                correctAnswersCount++;
+            } else {
+                playSound('incorrect');
+                clickedBtn.classList.add('incorrect');
+                
+                // Подсветка правильного ответа
+                allButtons.forEach(btn => {
+                    if (btn.innerText.includes(qData.options[qData.correct])) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            document.getElementById('quiz-score').innerText = score;
+
+            // Показ пояснения
+            document.getElementById('explanation-text').innerText = qData.exp;
+            document.getElementById('explanation-box').classList.remove('hidden');
+
+            // Активация кнопки далее
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        /* Обработка истечения времени */
+        function handleTimeout() {
+            if (answered) return;
+            answered = true;
+            playSound('incorrect');
+
+            const qData = currentQuestions[currentQIndex];
+            const allButtons = document.querySelectorAll('#options-container button');
+            allButtons.forEach(btn => {
+                btn.style.pointerEvents = 'none';
+                if (btn.innerText.includes(qData.options[qData.correct])) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            document.getElementById('explanation-text').innerText = "Время истекло! " + qData.exp;
+            document.getElementById('explanation-box').classList.remove('hidden');
+
+            const nextBtn = document.getElementById('btn-next');
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        /* Переход к следующему вопросу или результатам */
+        function nextQuestion() {
+            playSound('click');
+            currentQIndex++;
+            if (currentQIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        /* Экран результатов */
+        function showResults() {
+            playSound('win');
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const total = currentQuestions.length;
+            const accuracy = Math.round((correctAnswersCount / total) * 100);
+
+            document.getElementById('stat-correct').innerText = `${correctAnswersCount}/${total}`;
+            document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('stat-score').innerText = score;
+
+            // Присвоение старинного титула
+            let title = "";
+            let subtitle = "";
+
+            if (accuracy === 100) {
+                title = "👑 Великій Летописецъ Муромскій";
+                subtitle = "Премудрость твоя подобна мудрости святой Февронии! Ни единой ошибки не допустил ты!";
+            } else if (accuracy >= 70) {
+                title = "📜 Премудрый Отрокъ";
+                subtitle = "Отличные знания показал ты по сказанию о Петре и Февронии!";
+            } else if (accuracy >= 40) {
+                title = "⚔ Доблестный Ученикъ";
+                subtitle = "Ведаешь ты суть повести, но некоторые летописные детали упустил.";
+            } else {
+                title = "📖 Начинающій Чтецъ";
+                subtitle = "Советуем перечитать повесть и испытать силы свои снова!";
+            }
+
+            document.getElementById('result-title').innerText = title;
+            document.getElementById('result-subtitle').innerText = subtitle;
+        }
+
+        function restartCurrentLevel() {
+            startQuiz();
+        }
+
+        function exitToMenu() {
+            playSound('click');
+            clearInterval(timerInterval);
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-welcome').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
